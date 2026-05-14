@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.kemmer.df-lexvance-datev-bridge-option-c</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/make/Projects/dark-factories/df-lexvance-datev-bridge-option-c/scripts/run-df-lexvance-datev-c.sh</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>DF_ENV_TAG</key>
+        <string>prod</string>
+        <key>DF_BASE_DIR</key>
+        <string>/Users/make/Library/CloudStorage/GoogleDrive-m.e.o.kemmer@gmail.com/Meine Ablage/Claude-Knowledge-System</string>
+        <key>DF_LEXVANCE_DATEV_C_REAL_ENABLED</key>
+        <string>false</string>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+    </dict>
+
+    <!-- Daily 05:00 (1h nach Option-A 04:00 = kein Race) -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key><integer>5</integer>
+        <key>Minute</key><integer>0</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/df-lexvance-datev-bridge-option-c.stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/df-lexvance-datev-bridge-option-c.stderr.log</string>
+
+    <!-- NICHT loaden bis Phronesis-Approval Martin (Welle-8 Phase-Gate). -->
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/make/Projects/dark-factories/df-lexvance-datev-bridge-option-c</string>
+</dict>
+</plist>
