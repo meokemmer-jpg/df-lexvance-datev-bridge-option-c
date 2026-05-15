@@ -1,251 +1,243 @@
-# DF-LEXVANCE-DATEV-BRIDGE-OPTION-C Configuration [CRUX-MK]
-# Welle-8 DF-Build (Contrarian-Tier Budget-Customers + Family-Office Brueder-Loehne)
-# Pattern-Reuse aus DF-LexVance-Lohn-Option-A (TenantContext + K16 + DLS-Export)
-# Spec: branch-hub/blueprints/SPEC-DF-LEXVANCE-DATEV-BRIDGE-OPTION-C-2026-05-09.md
-# Build-Trigger: Architekt-autonom 2026-05-09 (Mac, Welle-8 Tier-1, "A sowie C komplett")
-
 df_id: DF-LEXVANCE-DATEV-BRIDGE-OPTION-C
 df_name: lexvance-datev-bridge-option-c
 version: 0.1.0-PHASE-1-SKELETON-CONDITIONAL
 status: SKELETON-CONDITIONAL
 crux-mk: true
+description: 'Daily Workday → DATEV-LODAS-Bridge fuer Budget-Customers + Family-Office
+  (Brueder-Loehne).
 
-description: |
-  Daily Workday → DATEV-LODAS-Bridge fuer Budget-Customers + Family-Office (Brueder-Loehne).
-  Pipeline: Workday-API → DATEVLODASClient (REST/SOAP) → DATEV-Lohn-Engine (extern, haftet) → DATEV-Export → DLSExportFormatBridge → DLS 2026.1.
+  Pipeline: Workday-API → DATEVLODASClient (REST/SOAP) → DATEV-Lohn-Engine (extern,
+  haftet) → DATEV-Export → DLSExportFormatBridge → DLS 2026.1.
+
   GoBD-Audit-Wrapper (hash_chain + RFC3161-Stub + S3-Object-Lock-Stub) per CRIT-W7-4.
-  Daily 05:00. Mock-Mode default; Real-Mode via DF_LEXVANCE_DATEV_C_REAL_ENABLED=true + PHRONESIS_TICKET.
 
-# === Default-Action (Welle-51 Batch-5 Migration, per Schicht-2 v1.2) ===
-# Migration-Welle: Welle-51 Batch-5
+  Daily 05:00. Mock-Mode default; Real-Mode via DF_LEXVANCE_DATEV_C_REAL_ENABLED=true
+  + PHRONESIS_TICKET.
+
+  '
 default_action:
-  description: "Daily Workday-Payroll-Export → DATEV-LODAS-Bridge → DLS 2026.1-Export pro Budget-Customer + Family-Office-Brueder-Loehne mit GoBD-Audit-Chain + 2PC-Journal"
+  description: Daily Workday-Payroll-Export → DATEV-LODAS-Bridge → DLS 2026.1-Export
+    pro Budget-Customer + Family-Office-Brueder-Loehne mit GoBD-Audit-Chain + 2PC-Journal
   rho_per_run_eur: 150
   rho_validation_source: unvalidated
   block_gates:
-    - gate_id: K13_PAV
-      block_reason: "Pre-Action-Domain-Check (env/mount/region) + Backup-Status + DATEV-API-Reachability + RFC3161-Anchor failed"
-      false_block_cost_eur: 80
-      legitimate_block_condition: "env_tag != prod ODER Backup-Replication-Lag > 60s ODER DATEV-API unreachable >300s ODER PHRONESIS_TICKET missing fuer Real-Mode"
-    - gate_id: K14
-      block_reason: "STOP.flag aktiv ODER Override-Doku > 30 Tage alt ODER Family-Office Q_0-Audit fehlgeschlagen"
-      false_block_cost_eur: 100
-      legitimate_block_condition: "Martin hat STOP.flag gesetzt ODER Brueder-Loehne-Mandanten-Isolation verletzt"
-    - gate_id: K11
-      block_reason: "Cascade-Isolation verletzt (Tenant-Boundary failed) ODER DLQ-Backlog > Threshold"
-      false_block_cost_eur: 60
-      legitimate_block_condition: "DATEV-API-Failure cascading auf andere Tenants ODER Quota-Hard-Cap (50 Calls) erreicht"
-  graceful_degradation_path: "degraded_no_datev (DATEV down, dry-run Cache) ODER degraded_dry_run (Validation-only) ODER standalone (Mock-Mode default fuer dev)"
-
-# === Tier-2 Pflicht-Check (per df-akzeptanz-kriterien.md) ===
-
+  - gate_id: K13_PAV
+    block_reason: Pre-Action-Domain-Check (env/mount/region) + Backup-Status + DATEV-API-Reachability
+      + RFC3161-Anchor failed
+    false_block_cost_eur: 80
+    legitimate_block_condition: env_tag != prod ODER Backup-Replication-Lag > 60s
+      ODER DATEV-API unreachable >300s ODER PHRONESIS_TICKET missing fuer Real-Mode
+  - gate_id: K14
+    block_reason: STOP.flag aktiv ODER Override-Doku > 30 Tage alt ODER Family-Office
+      Q_0-Audit fehlgeschlagen
+    false_block_cost_eur: 100
+    legitimate_block_condition: Martin hat STOP.flag gesetzt ODER Brueder-Loehne-Mandanten-Isolation
+      verletzt
+  - gate_id: K11
+    block_reason: Cascade-Isolation verletzt (Tenant-Boundary failed) ODER DLQ-Backlog
+      > Threshold
+    false_block_cost_eur: 60
+    legitimate_block_condition: DATEV-API-Failure cascading auf andere Tenants ODER
+      Quota-Hard-Cap (50 Calls) erreicht
+  graceful_degradation_path: degraded_no_datev (DATEV down, dry-run Cache) ODER degraded_dry_run
+    (Validation-only) ODER standalone (Mock-Mode default fuer dev)
 tier_2_check:
-  lambda_per_month_estimate: 30   # Daily 05:00
-  narrow_scope: "Workday → DATEV-LODAS-API → DATEV-Lohn-Engine → DLS-Export-Bridge (kein Eigen-Engine)"
-  determinism: 0.92   # DATEV ist Marktstandard mit haftungssicheren Schnittstellen
+  lambda_per_month_estimate: 30
+  narrow_scope: Workday → DATEV-LODAS-API → DATEV-Lohn-Engine → DLS-Export-Bridge
+    (kein Eigen-Engine)
+  determinism: 0.92
   rollback_seconds: 30
-  test_coverage_target: 0.90
+  test_coverage_target: 0.9
   k0_protected: true
   q0_measurable: true
-  escalation_after_n_fails: 2   # strenger wegen Family-Office-Brueder-Loehne (Q_0-Pflicht)
-  rho_budget_eur_day: 0   # Mock-Mode default; Real-Mode marginal-cost
+  escalation_after_n_fails: 2
+  rho_budget_eur_day: 0
   audit_trail: branch-hub/audit/df-lexvance-datev-bridge-option-c.jsonl
-
-# === K11-K16 Akzeptanz-Kriterien ===
-
 k11_cascade_containment:
   cascade_isolation: hard
   failure_blast_radius: 1
-  dependency_dlq_strategy: "per Tenant eigene DLQ + jsonl-Backup bei DATEV-API-Failure"
-
+  dependency_dlq_strategy: per Tenant eigene DLQ + jsonl-Backup bei DATEV-API-Failure
 k12_distillation_resistenz:
   output_feeds_into_training: false
   provenance_required_in_output: true
-  non_llm_validation_layer: dls_schema_deterministic_via_datev_export   # DATEV-Export-Schema + DLS 2026.1 Pflichtfeld-Mapping
-
+  non_llm_validation_layer: dls_schema_deterministic_via_datev_export
 k13_independent_ground_truth:
-  external_anchor_type: "github_filesystem + datev_api_response_hash + rfc3161_stub + s3_object_lock_stub"
-  external_anchor_validation_frequency: "pro-Run (Manifest-SHA256 + Hash-Chain-Append)"
+  external_anchor_type: github_filesystem + datev_api_response_hash + rfc3161_stub
+    + s3_object_lock_stub
+  external_anchor_validation_frequency: pro-Run (Manifest-SHA256 + Hash-Chain-Append)
   pre_action_domain_check:
-    env_tag: "dev/staging/prod check pre-each-run"
-    mount_point: "Google-Drive-mount + GitHub-Mirror"
-    network_region: "fixed eu-central-1 fuer DSGVO + DATEV-Cloud-DE"
+    env_tag: dev/staging/prod check pre-each-run
+    mount_point: Google-Drive-mount + GitHub-Mirror
+    network_region: fixed eu-central-1 fuer DSGVO + DATEV-Cloud-DE
   pre_action_backup_check:
-    backup_status: "branch-hub Git-Mirror Pflicht pre-each-call"
-    replication_lag: "Drive-sync-lag < 60s required"
+    backup_status: branch-hub Git-Mirror Pflicht pre-each-call
+    replication_lag: Drive-sync-lag < 60s required
   pre_action_blast_radius_check:
-    blast_radius: "read_only_workday + datev_lohn_call (side_effect) + write_lexvance_audit"
-    reversibility_class: "side_effect"   # DATEV-Calls sind side_effect (Mutationen!)
-
+    blast_radius: read_only_workday + datev_lohn_call (side_effect) + write_lexvance_audit
+    reversibility_class: side_effect
 k14_human_override_decay:
-  override_complexity: single_command   # `touch STOP.flag`
+  override_complexity: single_command
   override_documentation_freshness_days: 30
   martin_review_cadence: monthly
   bus_factor_handover_drilled: false
-
 k15_entropy_budget:
   entropy_added_loc_estimate: 600
   entropy_added_concepts:
-    - DATEVLODASClient
-    - WorkdayDATEVBridge
-    - GoBDAuditWrapper
-    - DLSExportFormatBridge
-    - TenantContext
-    - HashChainAuditLog
-    - RFC3161AnchorStub
-    - S3ObjectLockStub
-    - TwoPhaseCommitJournal   # CRIT-W7-1 Pflicht!
-    - QuotaGuard               # CRIT-W7-1 K11b Pflicht!
-  entropy_justified_by_rho: "60-200k_eur_per_year_per_customer (Budget-Tier) + Family-Office Brueder-Loehne Q_0-Pflicht → 135-450k Year-3 Aggregat"
-  entropy_subtractive_potential: "ersetzt manuelle Lohn-Pruefung pro Family-Office ~8h/Monat"
-  python_env_pinned: true   # EF37 Pflicht
+  - DATEVLODASClient
+  - WorkdayDATEVBridge
+  - GoBDAuditWrapper
+  - DLSExportFormatBridge
+  - TenantContext
+  - HashChainAuditLog
+  - RFC3161AnchorStub
+  - S3ObjectLockStub
+  - TwoPhaseCommitJournal
+  - QuotaGuard
+  entropy_justified_by_rho: 60-200k_eur_per_year_per_customer (Budget-Tier) + Family-Office
+    Brueder-Loehne Q_0-Pflicht → 135-450k Year-3 Aggregat
+  entropy_subtractive_potential: ersetzt manuelle Lohn-Pruefung pro Family-Office
+    ~8h/Monat
+  python_env_pinned: true
   venv_path: ~/Projects/dark-factories/df-lexvance-datev-bridge-option-c/.venv
-
 k16_concurrent_spawn_mutex:
-  concurrent_spawn_protection: both   # Wrapper + Engine
+  concurrent_spawn_protection: both
   lock_dir: /tmp/df-lexvance-datev-bridge-option-c.lock
-  lock_stale_age_h: 1   # CRIT-W7-3 Pflicht
-  pid_liveness_check: true   # EF38 os.kill(pid, 0) Pflicht
+  lock_stale_age_h: 1
+  pid_liveness_check: true
   engine_pgrep_check: true
   lock_release_on: EXIT_INT_TERM
-
 k11b_pipeline_cost_estimate:
-  pipeline_cost_estimate_required: true   # CRIT-W7-1 Quota-Bypass-Schutz!
+  pipeline_cost_estimate_required: true
   cost_estimate_method: static_pre_run
-  quota_budget_ceiling: 50   # max 50 DATEV-API-Calls pro Run (Hard-Cap)
-  cost_overrun_action: hard_stop   # CRIT-W7-1: NICHT warn, sondern STOP
-
-# === LC1-LC5 Lose-Coupling ===
-
+  quota_budget_ceiling: 50
+  cost_overrun_action: hard_stop
 lose_coupling:
   LC1_graceful_degradation:
     degradation_modes:
-      - full              # Workday + DATEV + DLS-Export + Audit-Anchor alle aktiv
-      - degraded_no_datev # DATEV-API down, dry-run (read-only Cache)
-      - degraded_dry_run  # Validation-only, kein DATEV-Lohn-Call
-      - standalone        # Mock-Mode (default fuer dev/test)
+    - full
+    - degraded_no_datev
+    - degraded_dry_run
+    - standalone
     degradation_test_required: true
   LC2_direct_mode:
     direct_mode_available: true
-    direct_mode_capability: 0.3   # ohne DATEV nichts (haftungssicher delegiert)
-    direct_mode_trigger: "datev_api_unreachable >300s"
+    direct_mode_capability: 0.3
+    direct_mode_trigger: datev_api_unreachable >300s
   LC3_circuit_breaker:
     circuit_breaker_timeout_s: 30
     circuit_breaker_open_threshold: 3
     circuit_breaker_half_open_test_interval_s: 300
   LC4_failure_isolation:
     state_externalization: true
-    idempotent_operations: true   # CRIT-W7-1 Pflicht (Two-Phase-Commit + journal!)
+    idempotent_operations: true
     dependency_dlq_separate: true
   LC5_health_check:
     health_check_dependencies:
-      - datev_api_health
-      - workday_api_health
+    - datev_api_health
+    - workday_api_health
     health_check_degraded_score: 0.5
-    health_check_endpoint_or_file: "/tmp/df-lexvance-datev-bridge-option-c-health.json"
-
-# === ENV-Var-Gating (per env-var-gated-real-integration-default) ===
-
+    health_check_endpoint_or_file: /tmp/df-lexvance-datev-bridge-option-c-health.json
 env_var_gating:
   real_mode_env_var: DF_LEXVANCE_DATEV_C_REAL_ENABLED
-  real_mode_default: false   # Mock-Mode default (Strict-Conditions)
+  real_mode_default: false
   phronesis_ticket_env_var: PHRONESIS_TICKET
   activation_audit_log_required: true
-  source_field_pattern: "mock | real-api | stub"
-
-# === Pfad-Konfiguration ===
-
+  source_field_pattern: mock | real-api | stub
 paths:
-  workday_mock_data: "branch-hub/df-lexvance-datev/mock/workday_payroll_response.json"
-  datev_mock_response: "branch-hub/df-lexvance-datev/mock/datev_lodas_response.json"
-  dls_export_dir: "branch-hub/df-lexvance-datev/dls-exports"
-  output_dir: "branch-hub/audit/df-lexvance-datev"
-  audit_log: "branch-hub/audit/df-lexvance-datev-bridge-option-c.jsonl"
-  hash_chain_log: "branch-hub/audit/df-lexvance-datev-hash-chain.jsonl"
-  two_phase_journal: "branch-hub/audit/df-lexvance-datev-2pc-journal.jsonl"   # CRIT-W7-1
-  source_lineage_db: "branch-hub/audit/df-lexvance-datev-source-lineage.json"  # CRIT-W7-1 stable file→source_id
-  stop_flag: "branch-hub/audit/df-lexvance-datev-STOP.flag"
-
-# === Workday-Connector-Settings ===
-
+  workday_mock_data: branch-hub/df-lexvance-datev/mock/workday_payroll_response.json
+  datev_mock_response: branch-hub/df-lexvance-datev/mock/datev_lodas_response.json
+  dls_export_dir: branch-hub/df-lexvance-datev/dls-exports
+  output_dir: branch-hub/audit/df-lexvance-datev
+  audit_log: branch-hub/audit/df-lexvance-datev-bridge-option-c.jsonl
+  hash_chain_log: branch-hub/audit/df-lexvance-datev-hash-chain.jsonl
+  two_phase_journal: branch-hub/audit/df-lexvance-datev-2pc-journal.jsonl
+  source_lineage_db: branch-hub/audit/df-lexvance-datev-source-lineage.json
+  stop_flag: branch-hub/audit/df-lexvance-datev-STOP.flag
 workday_connector:
-  api_base_url: "https://wd2-services.workday.com/ccx/service/customer/v40.0"
-  payroll_endpoint: "/payroll/2026/Get_Payroll_Results"
+  api_base_url: https://wd2-services.workday.com/ccx/service/customer/v40.0
+  payroll_endpoint: /payroll/2026/Get_Payroll_Results
   timeout_s: 30
   retry_max: 3
   retry_backoff_s: 5
-  api_version: "v40.0"
-
-# === DATEV-LODAS-Client-Settings ===
-
+  api_version: v40.0
 datev_lodas_client:
-  api_base_url: "https://api.datev.de/lodas/v1"
-  ws_connect_url: "https://wsconnect.datev.de"
-  cloud_api_url: "https://api.datev.de/cloud/v1"
-  timeout_s: 60   # DATEV ist langsamer als Workday
+  api_base_url: https://api.datev.de/lodas/v1
+  ws_connect_url: https://wsconnect.datev.de
+  cloud_api_url: https://api.datev.de/cloud/v1
+  timeout_s: 60
   retry_max: 3
   retry_backoff_s: 10
-
-# === DLS-Export-Bridge-Settings (DATEV-Export → DLS 2026.1) ===
-
 dls_export_bridge:
-  schema_version: "2026.1"
+  schema_version: '2026.1'
   output_format: json
   schema_validation: strict
   required_fields:
-    - mandant_id
-    - mitarbeiter_id
-    - lohnabrechnung_id
-    - bruttolohn_eur_cents
-    - nettolohn_eur_cents
-    - sozialabgaben_eur_cents
-    - lohnsteuer_eur_cents
-    - abrechnungsmonat_iso
-    - dls_signature
-    - datev_export_id     # NEU vs Option-A
-    - datev_mandant_nr    # NEU vs Option-A
-
-# === GoBD-Audit-Wrapper (CRIT-W7-4) ===
-
+  - mandant_id
+  - mitarbeiter_id
+  - lohnabrechnung_id
+  - bruttolohn_eur_cents
+  - nettolohn_eur_cents
+  - sozialabgaben_eur_cents
+  - lohnsteuer_eur_cents
+  - abrechnungsmonat_iso
+  - dls_signature
+  - datev_export_id
+  - datev_mandant_nr
 gobd_audit:
   hash_chain_algorithm: sha256
-  hash_chain_link_format: "prev_hash || event_json || timestamp_iso"
-  atomic_write: true   # os.replace pattern
-  rfc3161_anchor_enabled: false   # Stub-Mode (Production via Phronesis)
-  rfc3161_provider: "http://freetsa.org/tsr"
-  s3_object_lock_enabled: false   # Stub-Mode (Production via Phronesis)
-  s3_object_lock_retention_days: 2555   # 10-Jahre-GoBD-Pflicht
-  daily_anchor_cadence: false   # Phase-2 Activation
-
-# === Two-Phase-Commit (CRIT-W7-1 Pflicht!) ===
-
+  hash_chain_link_format: prev_hash || event_json || timestamp_iso
+  atomic_write: true
+  rfc3161_anchor_enabled: false
+  rfc3161_provider: http://freetsa.org/tsr
+  s3_object_lock_enabled: false
+  s3_object_lock_retention_days: 2555
+  daily_anchor_cadence: false
 two_phase_commit:
   enabled: true
   prepare_phase_timeout_s: 30
   commit_phase_timeout_s: 60
   rollback_on_partial_failure: true
-  journal_atomic: true   # Manifest-Failures hart fehlschlagen lassen!
-
-# === Quota-Guard (CRIT-W7-1 K11b Pflicht!) ===
-
+  journal_atomic: true
 quota_guard:
   enabled: true
   pre_run_estimate_required: true
   enforce_hard_cap: true
   daily_call_limit: 50
   alert_at_pct: 80
-
-# === Severity-Schwellen (Coverage / Health-Score) ===
-
 severity_thresholds:
   health_critical: 0.5
   health_warning: 0.75
   health_ok: 0.9
-
-# === Family-Office Q_0-Pflicht-Check ===
-
 family_office_q0:
   strict_multi_mandant_isolation: true
-  brueder_loehne_separated_from_konzern: true   # 9dots-Konzern (Konst-23 Premium-Tier) NICHT vermischen
+  brueder_loehne_separated_from_konzern: true
   q0_audit_pre_each_run: true
   martin_phronesis_required_pre_real_activation: true
+activation_gates:
+  internal_real_mode:
+    env_var: DF-LEXVANCE-DATEV-BRIDGE-OPTION-C_INTERNAL_REAL_ENABLED
+    default: false
+    description: Echte Daten-Verarbeitung lokal/sandbox, KEIN External-Output
+    requires:
+    - DF_INTERNAL_REAL_ENABLED=true
+  external_real_mode:
+    env_var: DF-LEXVANCE-DATEV-BRIDGE-OPTION-C_REAL_ENABLED
+    default: false
+    description: Real-Mode mit External-Output (Sign-Off Pflicht)
+    requires:
+      phronesis_ticket_env: PHRONESIS_TICKET
+      signoff_id_env: ANWALT_SIGNOFF_ID
+      rdg_gate_env: DC_W49_5_RDG_GATE
+      rdg_gate_value: approved
+  external_output_gate:
+    env_var_signoff_id: ANWALT_SIGNOFF_ID
+    default: BLOCKED
+    description: Mechanischer Block fuer External-Communication ohne Sign-Off
+output_pipe_block:
+- send_email_external
+- partner_notify_external
+- gericht_upload
+- behoerde_submit
+- mandant_external_communication
+- gegner_anwalt_notify
+- draft_publish_external
