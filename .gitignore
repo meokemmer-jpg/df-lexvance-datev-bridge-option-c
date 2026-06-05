@@ -4,3 +4,11 @@ __pycache__/
 *.db
 .DS_Store
 audit/
+*.env
+.env
+*.sqlite
+*.sqlite3
+*.key
+*.pem
+secrets.json
+credentials.json
