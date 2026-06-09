@@ -1,9 +1,9 @@
 {
   "df": "df-lexvance-datev-bridge-option-c",
-  "ts": "2026-06-07T20:47:29.939161+00:00",
+  "ts": "2026-06-09T01:26:25.412091+00:00",
   "ok": true,
-  "bytes": 4932,
-  "model": "kemmer-70b-ctx8k",
+  "bytes": 6464,
+  "model": "kemmer-14b-ctx8k",
   "mode": "produce",
-  "duration_s": 164.5
+  "duration_s": 50.4
 }
