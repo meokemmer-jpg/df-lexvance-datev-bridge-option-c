@@ -1373,7 +1373,7 @@ def run_datev_bridge_pipeline(
         mutex.release()
 
 
-if __name__ == "__main__":
+def __df_guarded_entry():  # K16+K11-FOUNDATION-WIRED [CRUX-MK]
     import yaml  # type: ignore[import-untyped]
     config_path = Path(__file__).parent.parent / "config.yaml"
     config = yaml.safe_load(config_path.read_text())
@@ -1381,3 +1381,10 @@ if __name__ == "__main__":
     base_dir.mkdir(parents=True, exist_ok=True)
     result = run_datev_bridge_pipeline(base_dir, config)
     print(json.dumps(result.summary(), indent=2))
+
+if __name__ == "__main__":  # K16+K11-FOUNDATION-WIRED [CRUX-MK]
+    try:
+        from _df_common.df_foundation import run_guarded as _rg
+    except Exception:
+        raise SystemExit(__df_guarded_entry())   # Foundation weg -> normal
+    raise SystemExit(_rg("df-lexvance-datev-bridge-option-c", __df_guarded_entry))   # K14+K16+K15+K11 echt

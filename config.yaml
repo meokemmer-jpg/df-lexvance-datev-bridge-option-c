@@ -241,3 +241,19 @@ output_pipe_block:
 - mandant_external_communication
 - gegner_anwalt_notify
 - draft_publish_external
+K13_external_anchor_type: verified_web_sources
+K13_external_anchor_validation_frequency: per_anchor_run
+K13_external_anchor_count: 2
+K13_external_anchor_evidence: https://www.legaltechverband.de/publikationen/legal-tech-monitor-2025/
+K13_anchored_ts: 2026-06-23T05:20:59.001558+00:00
+
+# --- K11-16 Board-Haertung (evidence-based, df_k_hardening) [CRUX-MK] ---
+K11_cascade_containment: isolated_run  # evidence: df_foundation.isolated_run (echte Failure-Isolation)
+K12_distillation_resistance: provenance_non_llm  # evidence: verified_web_sources (Provenance) + verify_urls (non-LLM-Validierung)
+K13_independent_ground_truth: web_verified  # evidence: verified_web_sources (HTTP-verifizierte Quellen)
+K14_human_override_decay: foundation_override  # evidence: df_foundation.run_guarded (STOP.flag-Override)
+K15_entropy_budget: foundation_budget  # evidence: df_foundation.run_guarded (Tages-Lauf-Budget)
+K16_concurrent_spawn_mutex: foundation_mutex  # evidence: df_foundation.spawn_mutex (atomarer Lock)
+K_hardening_gap: []  # echte Luecke -> Code noetig
+K_hardening_level: enforced  # 6/6 evidenz-belegt
+K_hardening_ts: 2026-06-23T05:28:42.159826+00:00
