@@ -1,9 +1,9 @@
 {
   "df": "df-lexvance-datev-bridge-option-c",
-  "ts": "2026-07-10T06:04:24.158832+00:00",
+  "ts": "2026-07-10T08:04:15.941516+00:00",
   "maturity": "TESTED",
   "maturity_level": 4,
   "evidence_grade": 4,
-  "wargame_verdict": "CONDITIONAL",
+  "wargame_verdict": "REJECTED",
   "crux": "[CRUX-MK]"
 }
